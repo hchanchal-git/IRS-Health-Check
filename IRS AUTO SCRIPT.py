@@ -48,7 +48,7 @@ TO_EMAILS = [
     "Venus.M.Hutson@irs.gov", "Jeronima.G.Gomez@irs.gov", "Wayne.M.Garrido@irs.gov",
     "Dionecio.Headley@irs.gov", "Melissa.Shuman@irs.gov", "Kartez.I.Harris@irs.gov",
     "Anthony.G.Clark@irs.gov", "Amit.R.Mohite@irs.gov", "sankar.b.mandalika@irs.gov",
-    "Wenjun.du@irs.gov", "Lashelle.lewis@irs.gov",
+    "Wenjun.du@irs.gov", "Lashelle.lewis@irs.gov","Jasmine.A.Lee@irs.gov", "Jennifer.L.Nunley@irs.gov", "Robin.S.Ferguson2@irs.gov"
 ]
 
 CC_EMAILS = [
@@ -330,4 +330,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+
         print("\nKeyboard interrupt received. Exiting.")
