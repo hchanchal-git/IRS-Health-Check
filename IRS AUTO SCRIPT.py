@@ -105,23 +105,105 @@ def get_date_with_ordinal(dt: datetime.datetime) -> str:
     return dt.strftime(f"%B {day}{suffix}, %Y")
 
 def build_email_html(subject: str, body: str, to: List[str], cc: List[str], bcc: List[str]) -> str:
-    def make_list(items):
-        return "<ul>" + "".join(f"<li>{item}</li>" for item in items) + "</ul>"
-    to_html = f"<strong>To:</strong>{make_list(to)}"
-    cc_html = f"<strong>Cc:</strong>{make_list(cc)}"
-    bcc_html = f"<strong>Bcc:</strong>{make_list(bcc)}"
-    html = f"""<html>
-<head><meta charset="utf-8"><title>{subject}</title></head>
-<body style="font-family:Arial, sans-serif;">
-  <h3>{subject}</h3>
-  <p>{body}</p>
-  {to_html}
-  {cc_html}
-  {bcc_html}
-  <hr>
-  <p><em>Please attach the Excel sheet to the outgoing mail before sending.</em></p>
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{subject}</title>
+
+<style>
+body {{
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:30px;
+}}
+
+.card {{
+    max-width:1100px;
+    margin:auto;
+    background:white;
+    border-radius:10px;
+    padding:25px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}}
+
+h2 {{
+    color:#0066cc;
+    margin-top:0;
+}}
+
+.section {{
+    margin-top:20px;
+}}
+
+.label {{
+    font-weight:bold;
+    color:#333;
+    margin-bottom:6px;
+}}
+
+ul {{
+    margin:6px 0 0 20px;
+}}
+
+.footer {{
+    margin-top:25px;
+    padding-top:15px;
+    border-top:1px solid #ddd;
+    color:#666;
+}}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>IRS Daily Health Check Draft</h2>
+
+<div class="section">
+<div class="label">Subject</div>
+{subject}
+</div>
+
+<div class="section">
+<div class="label">Body</div>
+{body}
+</div>
+
+<div class="section">
+<div class="label">To</div>
+<ul>
+{''.join(f'<li>{x}</li>' for x in to)}
+</ul>
+</div>
+
+<div class="section">
+<div class="label">CC</div>
+<ul>
+{''.join(f'<li>{x}</li>' for x in cc)}
+</ul>
+</div>
+
+<div class="section">
+<div class="label">BCC</div>
+<ul>
+{''.join(f'<li>{x}</li>' for x in bcc)}
+</ul>
+</div>
+
+<div class="footer">
+<b>Reminder:</b> Please attach the Daily Health Check Excel report before sending the email.
+</div>
+
+</div>
+
 </body>
 </html>"""
+
     return html
 
 def save_temp_html(content: str, filename: str = "IRS_EmailDraft.html") -> str:
