@@ -120,112 +120,277 @@ def get_date_with_ordinal(dt: datetime.datetime) -> str:
     return dt.strftime(f"%B {day}{suffix}, %Y")
 
 
-def build_email_html(subject: str, body: str, to: List[str], cc: List[str], bcc: List[str]) -> str:
+def _display_name(email: str) -> str:
+    """Turn an email into a short Outlook-style display name."""
+    local = email.split("@", 1)[0]
+    if "." not in local and len(local) <= 12:
+        return local.upper() if local.lower().startswith("jb") else local
+    parts = [p for p in local.replace("_", ".").split(".") if p]
+    if not parts:
+        return email
+    return " ".join(p.capitalize() for p in parts)
+
+
+def _recipient_chips(emails: List[str], max_show: int = 4) -> str:
+    shown = emails[:max_show]
+    chips = "; ".join(_display_name(e) for e in shown)
+    remaining = len(emails) - len(shown)
+    if remaining > 0:
+        chips += f'; <span class=\"more\">+{remaining} others</span>"
+    return chips
+
+
+def build_email_html(
+    subject: str,
+    body: str,
+    to: List[str],
+    cc: List[str],
+    bcc: List[str],
+    sent_at=None,
+) -> str:
+    """Outlook-style email reading draft (matches the health-check email layout)."""
+    sent_at = sent_at or datetime.datetime.now()
+    stamp = sent_at.strftime("%a %Y-%m-%d %H:%M")
+    attach_name = f"IRS Daily Health Check Report - {get_date_with_ordinal(sent_at)}.xlsx"
+    to_line = _recipient_chips(to, 4)
+    cc_line = _recipient_chips(cc, 3)
+    bcc_line = _recipient_chips(bcc, 3) if bcc else ""
+
     html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <title>{subject}</title>
-
 <style>
-body {{
-    font-family: "Segoe UI", Arial, sans-serif;
-    background:#f4f6f9;
-    margin:0;
-    padding:30px;
-}}
-
-.card {{
-    max-width:1100px;
-    margin:auto;
-    background:white;
-    border-radius:10px;
-    padding:25px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-}}
-
-h2 {{
-    color:#0066cc;
-    margin-top:0;
-}}
-
-.section {{
-    margin-top:20px;
-}}
-
-.label {{
-    font-weight:bold;
-    color:#333;
-    margin-bottom:6px;
-}}
-
-ul {{
-    margin:6px 0 0 20px;
-}}
-
-.footer {{
-    margin-top:25px;
-    padding-top:15px;
-    border-top:1px solid #ddd;
-    color:#666;
-}}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    background: #f3f2f1;
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    color: #252423;
+  }}
+  .outlook {{
+    max-width: 920px;
+    margin: 24px auto;
+    background: #fff;
+    border: 1px solid #e1dfdd;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  }}
+  .subject-bar {{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #edebe9;
+  }}
+  .irs-badge {{
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: #ffcd00;
+    color: #000;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+  }}
+  .subject {{
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+  }}
+  .meta {{
+    padding: 14px 20px 10px;
+    border-bottom: 1px solid #edebe9;
+  }}
+  .from-row {{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 8px;
+  }}
+  .from {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }}
+  .avatar {{
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #6264a7;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }}
+  .from-name {{
+    font-weight: 600;
+    font-size: 15px;
+  }}
+  .timestamp {{
+    color: #605e5c;
+    font-size: 13px;
+    white-space: nowrap;
+  }}
+  .field {{
+    margin: 4px 0 0 46px;
+    font-size: 13px;
+    color: #605e5c;
+    line-height: 1.45;
+  }}
+  .field b {{
+    color: #323130;
+    font-weight: 600;
+    margin-right: 6px;
+  }}
+  .more {{ color: #0078d4; }}
+  .attachment {{
+    margin: 12px 20px 0 66px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e1dfdd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    background: #faf9f8;
+    max-width: 360px;
+  }}
+  .xlsx-icon {{
+    width: 28px;
+    height: 32px;
+    background: #107c41;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 3px;
+    border-radius: 2px;
+  }}
+  .attach-name {{
+    font-size: 13px;
+    color: #323130;
+  }}
+  .attach-size {{
+    font-size: 12px;
+    color: #605e5c;
+  }}
+  .body {{
+    padding: 28px 20px 36px 66px;
+    font-size: 15px;
+    line-height: 1.55;
+  }}
+  .body p {{ margin: 0 0 14px; }}
+  .reminder {{
+    margin-top: 28px;
+    padding: 12px 14px;
+    background: #fff4ce;
+    border-left: 4px solid #ffb900;
+    font-size: 13px;
+    color: #323130;
+  }}
+  .full-lists {{
+    margin: 0 20px 24px;
+    padding: 16px;
+    background: #faf9f8;
+    border: 1px solid #edebe9;
+    border-radius: 4px;
+    font-size: 13px;
+  }}
+  .full-lists h3 {{
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #323130;
+  }}
+  .full-lists ul {{
+    margin: 0 0 14px 18px;
+    padding: 0;
+  }}
+  .full-lists li {{ margin: 2px 0; color: #605e5c; }}
 </style>
-
 </head>
-
 <body>
+  <div class="outlook">
+    <div class="subject-bar">
+      <div class="irs-badge">IRS</div>
+      <h1 class="subject">{subject}</h1>
+    </div>
 
-<div class="card">
+    <div class="meta">
+      <div class="from-row">
+        <div class="from">
+          <div class="avatar">EN</div>
+          <div class="from-name">eGain Cloud Notifications</div>
+        </div>
+        <div class="timestamp">{stamp}</div>
+      </div>
+      <div class="field"><b>To:</b> {to_line}</div>
+      <div class="field"><b>Cc:</b> {cc_line}</div>
+      {f'<div class="field"><b>Bcc:</b> {bcc_line}</div>' if bcc_line else ''}
 
-<h2>IRS Daily Health Check Draft</h2>
+      <div class="attachment" title="Attach the Excel report before sending">
+        <div class="xlsx-icon">XLS</div>
+        <div>
+          <div class="attach-name">{attach_name}</div>
+          <div class="attach-size">Attach before send · ~20 KB</div>
+        </div>
+      </div>
+    </div>
 
-<div class="section">
-<div class="label">Subject</div>
-{subject}
-</div>
+    <div class="body">
+      {body}
+      <div class="reminder">
+        <b>Reminder:</b> Please attach the Daily Health Check Excel report before sending this email.
+      </div>
+    </div>
 
-<div class="section">
-<div class="label">Body</div>
-{body}
-</div>
-
-<div class="section">
-<div class="label">To</div>
-<ul>
-{''.join(f'<li>{x}</li>' for x in to)}
-</ul>
-</div>
-
-<div class="section">
-<div class="label">CC</div>
-<ul>
-{''.join(f'<li>{x}</li>' for x in cc)}
-</ul>
-</div>
-
-<div class="section">
-<div class="label">BCC</div>
-<ul>
-{''.join(f'<li>{x}</li>' for x in bcc)}
-</ul>
-</div>
-
-<div class="footer">
-<b>Reminder:</b> Please attach the Daily Health Check Excel report before sending the email.
-</div>
-
-</div>
-
+    <div class="full-lists">
+      <h3>To (full list)</h3>
+      <ul>
+        {''.join(f'<li>{x}</li>' for x in to)}
+      </ul>
+      <h3>Cc (full list)</h3>
+      <ul>
+        {''.join(f'<li>{x}</li>' for x in cc)}
+      </ul>
+      <h3>Bcc (full list)</h3>
+      <ul>
+        {''.join(f'<li>{x}</li>' for x in bcc)}
+      </ul>
+    </div>
+  </div>
 </body>
 </html>"""
     return html
 
 
 def save_temp_html(content: str, filename: str = "IRS_EmailDraft.html") -> str:
-    path = os.path.join(tempfile.gettempdir(), filename)
-    with open(path, "w", encoding="utf-8") as f:
+    """
+    Save draft next to this script (easy to find), and also under TEMP.
+    Returns the primary path (script folder) used for opening in the browser.
+    """
+    script_dir = Path(__file__).resolve().parent
+    primary = script_dir / filename
+    with open(primary, "w", encoding="utf-8") as f:
         f.write(content)
-    return path
+
+    temp_path = Path(tempfile.gettempdir()) / filename
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    except Exception:
+        pass
+
+    return str(primary)
 
 
 def path_to_file_uri(path: str) -> str:
@@ -233,61 +398,129 @@ def path_to_file_uri(path: str) -> str:
     return Path(path).resolve().as_uri()
 
 
-def _open_url_os(url: str) -> None:
-    """Open a URL with the OS default browser handler."""
-    system = platform.system()
-    if system == "Darwin":
-        subprocess.Popen(["open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    elif system == "Windows":
-        os.startfile(url)  # type: ignore[attr-defined]
-    else:
-        webbrowser.open(url)
+def find_windows_browser():
+    """Prefer Edge/Chrome so local HTML is not handed to Internet Explorer."""
+    candidates = [
+        os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
+        os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
+        os.path.expandvars(r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"),
+        os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%ProgramFiles%\Mozilla Firefox\firefox.exe"),
+        os.path.expandvars(r"%ProgramFiles(x86)%\Mozilla Firefox\firefox.exe"),
+    ]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    return None
 
 
-def open_urls_in_default_browser(urls: List[str]) -> None:
+def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
     """
-    Open the first URL in a NEW browser window, then open every remaining URL
-    as a new tab in that same window (default browser on Windows / macOS).
-
-    Add more links to the URLS list — they will all open together with the draft.
+    Open ONE new browser window where:
+      - Tab 1 = email draft
+      - Tab 2+ = every URL in URLS
     """
-    if not urls:
+    draft_path = str(Path(draft_path).resolve())
+    if not os.path.isfile(draft_path):
+        print("ERROR: Draft file was not created:", draft_path)
         return
+
+    draft_uri = path_to_file_uri(draft_path)
+    system = platform.system()
+    print("Opening draft as first tab:", draft_path)
+
     try:
-        system = platform.system()
-        if system == "Darwin":
+        if system == "Windows":
+            browser = find_windows_browser()
+            if browser:
+                print("Using browser:", browser)
+                subprocess.Popen(
+                    [browser, "--new-window", draft_path],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                time.sleep(1.8)
+                batch_size = 4
+                for i in range(0, len(urls), batch_size):
+                    batch = urls[i : i + batch_size]
+                    subprocess.Popen(
+                        [browser] + batch,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    time.sleep(0.45)
+                print(f"Opened draft (tab 1) + {len(urls)} link tab(s) in one window.")
+                return
+
+            print("Edge/Chrome not found; opening draft then links via start...")
             subprocess.Popen(
-                ["open", "-n", urls[0]],
+                ["cmd", "/c", "start", "", draft_path],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-        elif system == "Windows":
-            webbrowser.open(urls[0], new=1)  # new=1 -> new window
-        else:
-            webbrowser.open(urls[0], new=1)
+            time.sleep(1.5)
+            for u in urls:
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "", u],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                time.sleep(0.3)
+            return
 
-        time.sleep(1.0)
-
-        for u in urls[1:]:
-            if system == "Darwin":
+        if system == "Darwin":
+            subprocess.Popen(
+                ["open", "-n", draft_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            time.sleep(1.2)
+            for u in urls:
                 subprocess.Popen(
                     ["open", u],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
-            elif system == "Windows":
-                webbrowser.open(u, new=2)  # new=2 -> new tab
-            else:
-                webbrowser.open(u, new=2)
-            time.sleep(0.35)
-    except Exception as e:
-        print("Failed to open browser tabs:", e)
+                time.sleep(0.25)
+            return
+
+        webbrowser.open(draft_uri, new=1)
+        time.sleep(1.0)
         for u in urls:
-            try:
-                _open_url_os(u)
-                time.sleep(0.3)
-            except Exception as e2:
-                print(f"  Could not open {u}: {e2}")
+            webbrowser.open(u, new=2)
+            time.sleep(0.25)
+    except Exception as e:
+        print("Failed to open browser:", e)
+        try:
+            if system == "Windows":
+                os.startfile(draft_path)  # type: ignore[attr-defined]
+            else:
+                webbrowser.open(draft_uri)
+        except Exception as e2:
+            print("Could not open draft at all:", e2)
+            print("Please open this file manually:", draft_path)
+
+
+def open_urls_in_default_browser(urls: List[str]) -> None:
+    """Backward-compatible helper: first item is draft URI/path, rest are links."""
+    if not urls:
+        return
+    first, rest = urls[0], urls[1:]
+    if first.startswith("file:"):
+        try:
+            from urllib.parse import urlparse, unquote
+
+            parsed = urlparse(first)
+            draft_path = unquote(parsed.path)
+            if os.name == "nt" and draft_path.startswith("/"):
+                draft_path = draft_path.lstrip("/")
+        except Exception:
+            draft_path = first
+        open_draft_and_urls(str(draft_path), rest)
+    else:
+        open_draft_and_urls(first, rest)
 
 
 def timestamp_now() -> str:
@@ -330,7 +563,7 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
                 r = sess.get(url, timeout=timeout, allow_redirects=True, verify=False)
                 if 200 <= r.status_code < 300:
                     return ok("OK (Insecure TLS - verify=False) - CERT/SSL verification issue detected")
-                return f"{ts} - NOT OK (SSL -> {r.status_code})")
+                return f"{ts} - NOT OK (SSL -> {r.status_code})"
             except Exception:
                 return f"{ts} - NOT OK (SSL Error: {e})"
         except (RequestsConnectionError, Timeout, RequestException, socket.error) as e:
@@ -433,25 +666,25 @@ def main(argv=None):
     date_str = get_date_with_ordinal(now)
     subject = f"IRS Daily Health Check Report - {date_str} [#{CASE_ID}]"
     body = (
-        f"Dear Customer,<br><br>"
-        f"Please find the attached Daily Health Check Report - {date_str}."
-        f"<br><br>Regards,<br>eGain Corp"
+        f"<p>Dear Customer,</p>"
+        f"<p>Please find the attached Daily Health Check Report - {date_str}.</p>"
+        f"<p>Regards,<br>eGain Corp</p>"
     )
 
-    email_html = build_email_html(subject, body, TO_EMAILS, CC_EMAILS, BCC_EMAILS)
-    temp_html_path = save_temp_html(email_html)
-    draft_uri = path_to_file_uri(temp_html_path)
-    print("Email draft saved to:", temp_html_path)
+    email_html = build_email_html(
+        subject, body, TO_EMAILS, CC_EMAILS, BCC_EMAILS, sent_at=now
+    )
+    draft_path = save_temp_html(email_html)
+    draft_uri = path_to_file_uri(draft_path)
+    print("Email draft saved to:", draft_path)
     print("Draft URI:", draft_uri)
-
-    all_tabs = [draft_uri] + list(URLS)
 
     if not args.skip_browser:
         print(
-            f"Opening default browser: draft + {len(URLS)} link(s) "
-            f"in one window ({platform.system()})..."
+            f"Opening browser: draft first, then {len(URLS)} link(s) "
+            f"in the same window ({platform.system()})..."
         )
-        open_urls_in_default_browser(all_tabs)
+        open_draft_and_urls(draft_path, list(URLS))
     else:
         print("Skipping browser opening as requested.")
 
