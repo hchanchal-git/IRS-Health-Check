@@ -55,7 +55,7 @@ except Exception:
 CASE_ID = "3805724"
 
 TO_EMAILS = [
-    "Vaishali.P.Narkhede@irs.gov", "Donald.W.Russell@irs.gov",
+    "Vaishali.P.Narkhede@irs.gov", "Donald.W.Russell@irs.gov","Christopher.S.Fuller@irs.gov",
     "jb551t@att.com", "Michael.A.Harrison@irs.gov", "George.B.Lenoir@irs.gov",
     "Erik.C.Schlenker@irs.gov", "Darren.E.Jackson@irs.gov", "Geoffrey.T.Dang@irs.gov",
     "Jeronima.G.Gomez@irs.gov", "Wayne.M.Garrido@irs.gov",
