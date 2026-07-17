@@ -25,14 +25,12 @@ import webbrowser
 from pathlib import Path
 from typing import List, Tuple
 
-# GUI
 try:
     import tkinter as tk
     from tkinter import ttk
 except Exception:
     tk = None
 
-# HTTP libraries
 try:
     import requests
     from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -51,7 +49,6 @@ except Exception:
     SSLError = OSError  # type: ignore[misc, assignment]
     Timeout = OSError  # type: ignore[misc, assignment]
 
-# --------------------------- Configuration ----------------------------------
 CASE_ID = "3805724"
 
 TO_EMAILS = [
@@ -72,7 +69,6 @@ CC_EMAILS = [
     "eGainCloudNotifications@egain.com", "cbu-tsops@egain.com",
 ]
 
-# Put your full list of IRS URLs here — every entry opens as a tab with the draft
 URLS = [
     "https://sa.www4.irs.gov/idp/startSSO.ping?PartnerSpId=IRS-eGain-IDP&TargetResource=https%3A%2F%2Fconnect.irs.gov%2Fsystem%2Ftemplates%2Fmessagecenter%2Firssecure%2Fen-US%2FIRS%3Fpoa%3Dyes%26lp%3Dhttps%3A%2F%2Fsa.www4.irs.gov%2Fsso%2Fprotected%2Flogout",
     "https://connect.irs.gov/system/templates/messagecenter/irscorp/en-US/LBIEXAM",
@@ -106,7 +102,7 @@ URLS = [
     "https://groundwork8.egain.cloud/status?link=best&hostName=connect.irs.gov",
 ]
 
-# --------------------------- Helpers ----------------------------------------
+
 def get_date_with_ordinal(dt: datetime.datetime) -> str:
     day = dt.day
     if 11 <= day <= 13:
@@ -117,7 +113,6 @@ def get_date_with_ordinal(dt: datetime.datetime) -> str:
 
 
 def _display_name(email: str) -> str:
-    """Turn an email into a short Outlook-style display name."""
     local = email.split("@", 1)[0]
     if "." not in local and len(local) <= 12:
         return local.upper() if local.lower().startswith("jb") else local
@@ -132,18 +127,11 @@ def _recipient_chips(emails: List[str], max_show: int = 4) -> str:
     chips = "; ".join(_display_name(e) for e in shown)
     remaining = len(emails) - len(shown)
     if remaining > 0:
-        chips += f'; <span class=\"more\">+{remaining} others</span>"
+        chips += '; <span class="more">+' + str(remaining) + " others</span>"
     return chips
 
 
-def build_email_html(
-    subject: str,
-    body: str,
-    to: List[str],
-    cc: List[str],
-    sent_at=None,
-) -> str:
-    """Outlook-style email reading draft (matches the health-check email layout)."""
+def build_email_html(subject: str, body: str, to: List[str], cc: List[str], sent_at=None) -> str:
     sent_at = sent_at or datetime.datetime.now()
     stamp = sent_at.strftime("%a %Y-%m-%d %H:%M")
     attach_name = f"IRS Daily Health Check Report - {get_date_with_ordinal(sent_at)}.xlsx"
@@ -157,158 +145,30 @@ def build_email_html(
 <title>{subject}</title>
 <style>
   * {{ box-sizing: border-box; }}
-  body {{
-    margin: 0;
-    background: #f3f2f1;
-    font-family: "Segoe UI", Calibri, Arial, sans-serif;
-    color: #252423;
-  }}
-  .outlook {{
-    max-width: 920px;
-    margin: 24px auto;
-    background: #fff;
-    border: 1px solid #e1dfdd;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  }}
-  .subject-bar {{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid #edebe9;
-  }}
-  .irs-badge {{
-    flex: 0 0 auto;
-    width: 36px;
-    height: 36px;
-    border-radius: 4px;
-    background: #ffcd00;
-    color: #000;
-    font-weight: 700;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: 0.5px;
-  }}
-  .subject {{
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.3;
-    margin: 0;
-  }}
-  .meta {{
-    padding: 14px 20px 10px;
-    border-bottom: 1px solid #edebe9;
-  }}
-  .from-row {{
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 8px;
-  }}
-  .from {{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }}
-  .avatar {{
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #6264a7;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }}
-  .from-name {{
-    font-weight: 600;
-    font-size: 15px;
-  }}
-  .timestamp {{
-    color: #605e5c;
-    font-size: 13px;
-    white-space: nowrap;
-  }}
-  .field {{
-    margin: 4px 0 0 46px;
-    font-size: 13px;
-    color: #605e5c;
-    line-height: 1.45;
-  }}
-  .field b {{
-    color: #323130;
-    font-weight: 600;
-    margin-right: 6px;
-  }}
+  body {{ margin: 0; background: #f3f2f1; font-family: "Segoe UI", Calibri, Arial, sans-serif; color: #252423; }}
+  .outlook {{ max-width: 920px; margin: 24px auto; background: #fff; border: 1px solid #e1dfdd; box-shadow: 0 2px 8px rgba(0,0,0,.08); }}
+  .subject-bar {{ display: flex; align-items: center; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid #edebe9; }}
+  .irs-badge {{ flex: 0 0 auto; width: 36px; height: 36px; border-radius: 4px; background: #ffcd00; color: #000; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }}
+  .subject {{ font-size: 20px; font-weight: 600; line-height: 1.3; margin: 0; }}
+  .meta {{ padding: 14px 20px 10px; border-bottom: 1px solid #edebe9; }}
+  .from-row {{ display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }}
+  .from {{ display: flex; align-items: center; gap: 10px; }}
+  .avatar {{ width: 36px; height: 36px; border-radius: 50%; background: #6264a7; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }}
+  .from-name {{ font-weight: 600; font-size: 15px; }}
+  .timestamp {{ color: #605e5c; font-size: 13px; white-space: nowrap; }}
+  .field {{ margin: 4px 0 0 46px; font-size: 13px; color: #605e5c; line-height: 1.45; }}
+  .field b {{ color: #323130; font-weight: 600; margin-right: 6px; }}
   .more {{ color: #0078d4; }}
-  .attachment {{
-    margin: 12px 20px 0 66px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid #e1dfdd;
-    border-radius: 4px;
-    padding: 8px 12px;
-    background: #faf9f8;
-    max-width: 360px;
-  }}
-  .xlsx-icon {{
-    width: 28px;
-    height: 32px;
-    background: #107c41;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 3px;
-    border-radius: 2px;
-  }}
-  .attach-name {{
-    font-size: 13px;
-    color: #323130;
-  }}
-  .attach-size {{
-    font-size: 12px;
-    color: #605e5c;
-  }}
-  .body {{
-    padding: 28px 20px 36px 66px;
-    font-size: 15px;
-    line-height: 1.55;
-  }}
+  .attachment {{ margin: 12px 20px 0 66px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #e1dfdd; border-radius: 4px; padding: 8px 12px; background: #faf9f8; max-width: 360px; }}
+  .xlsx-icon {{ width: 28px; height: 32px; background: #107c41; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; border-radius: 2px; }}
+  .attach-name {{ font-size: 13px; color: #323130; }}
+  .attach-size {{ font-size: 12px; color: #605e5c; }}
+  .body {{ padding: 28px 20px 36px 66px; font-size: 15px; line-height: 1.55; }}
   .body p {{ margin: 0 0 14px; }}
-  .reminder {{
-    margin-top: 28px;
-    padding: 12px 14px;
-    background: #fff4ce;
-    border-left: 4px solid #ffb900;
-    font-size: 13px;
-    color: #323130;
-  }}
-  .full-lists {{
-    margin: 0 20px 24px;
-    padding: 16px;
-    background: #faf9f8;
-    border: 1px solid #edebe9;
-    border-radius: 4px;
-    font-size: 13px;
-  }}
-  .full-lists h3 {{
-    margin: 0 0 8px;
-    font-size: 13px;
-    color: #323130;
-  }}
-  .full-lists ul {{
-    margin: 0 0 14px 18px;
-    padding: 0;
-  }}
+  .reminder {{ margin-top: 28px; padding: 12px 14px; background: #fff4ce; border-left: 4px solid #ffb900; font-size: 13px; color: #323130; }}
+  .full-lists {{ margin: 0 20px 24px; padding: 16px; background: #faf9f8; border: 1px solid #edebe9; border-radius: 4px; font-size: 13px; }}
+  .full-lists h3 {{ margin: 0 0 8px; font-size: 13px; color: #323130; }}
+  .full-lists ul {{ margin: 0 0 14px 18px; padding: 0; }}
   .full-lists li {{ margin: 2px 0; color: #605e5c; }}
 </style>
 </head>
@@ -318,7 +178,6 @@ def build_email_html(
       <div class="irs-badge">IRS</div>
       <h1 class="subject">{subject}</h1>
     </div>
-
     <div class="meta">
       <div class="from-row">
         <div class="from">
@@ -329,7 +188,6 @@ def build_email_html(
       </div>
       <div class="field"><b>To:</b> {to_line}</div>
       <div class="field"><b>Cc:</b> {cc_line}</div>
-
       <div class="attachment" title="Attach the Excel report before sending">
         <div class="xlsx-icon">XLS</div>
         <div>
@@ -338,23 +196,17 @@ def build_email_html(
         </div>
       </div>
     </div>
-
     <div class="body">
       {body}
       <div class="reminder">
         <b>Reminder:</b> Please attach the Daily Health Check Excel report before sending this email.
       </div>
     </div>
-
     <div class="full-lists">
       <h3>To (full list)</h3>
-      <ul>
-        {''.join(f'<li>{x}</li>' for x in to)}
-      </ul>
+      <ul>{''.join(f'<li>{x}</li>' for x in to)}</ul>
       <h3>Cc (full list)</h3>
-      <ul>
-        {''.join(f'<li>{x}</li>' for x in cc)}
-      </ul>
+      <ul>{''.join(f'<li>{x}</li>' for x in cc)}</ul>
     </div>
   </div>
 </body>
@@ -367,14 +219,12 @@ def save_temp_html(content: str, filename: str = "IRS_EmailDraft.html") -> str:
     primary = script_dir / filename
     with open(primary, "w", encoding="utf-8") as f:
         f.write(content)
-
     temp_path = Path(tempfile.gettempdir()) / filename
     try:
         with open(temp_path, "w", encoding="utf-8") as f:
             f.write(content)
     except Exception:
         pass
-
     return str(primary)
 
 
@@ -414,53 +264,28 @@ def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
             browser = find_windows_browser()
             if browser:
                 print("Using browser:", browser)
-                subprocess.Popen(
-                    [browser, "--new-window", draft_path],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                subprocess.Popen([browser, "--new-window", draft_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 time.sleep(1.8)
                 batch_size = 4
                 for i in range(0, len(urls), batch_size):
                     batch = urls[i : i + batch_size]
-                    subprocess.Popen(
-                        [browser] + batch,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
+                    subprocess.Popen([browser] + batch, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     time.sleep(0.45)
                 print(f"Opened draft (tab 1) + {len(urls)} link tab(s) in one window.")
                 return
 
-            print("Edge/Chrome not found; opening draft then links via start...")
-            subprocess.Popen(
-                ["cmd", "/c", "start", "", draft_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            subprocess.Popen(["cmd", "/c", "start", "", draft_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(1.5)
             for u in urls:
-                subprocess.Popen(
-                    ["cmd", "/c", "start", "", u],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                subprocess.Popen(["cmd", "/c", "start", "", u], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 time.sleep(0.3)
             return
 
         if system == "Darwin":
-            subprocess.Popen(
-                ["open", "-n", draft_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            subprocess.Popen(["open", "-n", draft_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(1.2)
             for u in urls:
-                subprocess.Popen(
-                    ["open", u],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+                subprocess.Popen(["open", u], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 time.sleep(0.25)
             return
 
@@ -481,38 +306,14 @@ def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
             print("Please open this file manually:", draft_path)
 
 
-def open_urls_in_default_browser(urls: List[str]) -> None:
-    if not urls:
-        return
-    first, rest = urls[0], urls[1:]
-    if first.startswith("file:"):
-        try:
-            from urllib.parse import urlparse, unquote
-
-            parsed = urlparse(first)
-            draft_path = unquote(parsed.path)
-            if os.name == "nt" and draft_path.startswith("/"):
-                draft_path = draft_path.lstrip("/")
-        except Exception:
-            draft_path = first
-        open_draft_and_urls(str(draft_path), rest)
-    else:
-        open_draft_and_urls(first, rest)
-
-
 def timestamp_now() -> str:
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-# --------------------------- Improved URL checker ---------------------------
 def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -> str:
     ts = timestamp_now()
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0 Safari/537.36"
-        ),
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
     }
@@ -543,7 +344,7 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
                 return f"{ts} - NOT OK (SSL -> {r.status_code})"
             except Exception:
                 return f"{ts} - NOT OK (SSL Error: {e})"
-        except (RequestsConnectionError, Timeout, RequestException, socket.error) as e:
+        except (RequestsConnectionError, Timeout, RequestException, socket.error):
             try:
                 time.sleep(retry_delay)
                 r = sess.get(url, timeout=timeout, allow_redirects=True)
@@ -576,7 +377,6 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
             return f"{ts} - NOT OK ({e2})"
 
 
-# --------------------------- GUI --------------------------------------------
 class UrlStatusGUI:
     def __init__(self, master, results: List[Tuple[str, str]]):
         self.master = master
@@ -626,17 +426,10 @@ class UrlStatusGUI:
         self._results = new_results
 
 
-# --------------------------- Main flow -------------------------------------
 def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="IRS Daily Health Check - cross-platform Python script"
-    )
-    parser.add_argument(
-        "--no-gui", action="store_true", help="Don't show GUI (prints results to console)"
-    )
-    parser.add_argument(
-        "--skip-browser", action="store_true", help="Don't open browser tabs"
-    )
+    parser = argparse.ArgumentParser(description="IRS Daily Health Check - cross-platform Python script")
+    parser.add_argument("--no-gui", action="store_true", help="Don't show GUI (prints results to console)")
+    parser.add_argument("--skip-browser", action="store_true", help="Don't open browser tabs")
     args = parser.parse_args(argv)
 
     now = datetime.datetime.now()
@@ -648,19 +441,13 @@ def main(argv=None):
         f"<p>Regards,<br>eGain Corp</p>"
     )
 
-    email_html = build_email_html(
-        subject, body, TO_EMAILS, CC_EMAILS, sent_at=now
-    )
+    email_html = build_email_html(subject, body, TO_EMAILS, CC_EMAILS, sent_at=now)
     draft_path = save_temp_html(email_html)
-    draft_uri = path_to_file_uri(draft_path)
     print("Email draft saved to:", draft_path)
-    print("Draft URI:", draft_uri)
+    print("Draft URI:", path_to_file_uri(draft_path))
 
     if not args.skip_browser:
-        print(
-            f"Opening browser: draft first, then {len(URLS)} link(s) "
-            f"in the same window ({platform.system()})..."
-        )
+        print(f"Opening browser: draft first, then {len(URLS)} link(s) in the same window ({platform.system()})...")
         open_draft_and_urls(draft_path, list(URLS))
     else:
         print("Skipping browser opening as requested.")
