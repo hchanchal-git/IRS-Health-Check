@@ -132,7 +132,7 @@ def _recipient_chips(emails: List[str], max_show: int = 4) -> str:
     remaining = len(emails) - len(shown)
 
     if remaining > 0:
-        chips += f'; <span class="more">+{remaining} others</span>'
+        chips += f'; <span class=\"more\">+{remaining} others</span>"
 
     return chips
 
