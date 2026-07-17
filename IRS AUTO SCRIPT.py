@@ -69,15 +69,11 @@ CC_EMAILS = [
     "pgawande@eGain.com", "PBoyle@egain.com","dnewell@egain.com", "AGupta@eGain.com",
     "achan@eGain.com", "BUfoegbune@egain.com", "support@eGain.com",
     "radhav@eGain.com", "JKinderman@egain.com",
-    "eGainCloudNotifications@egain.com",
+    "eGainCloudNotifications@egain.com","cbu-tsops@egain.com",
 ]
-
-BCC_EMAILS = ["cbu-tsops@egain.com"]
 
 # Put your full list of IRS URLs here — every entry opens as a tab with the draft
 URLS = [
-    "https://www.irs.gov/payments",
-    "https://www.irs.gov/es/payments",
     "https://sa.www4.irs.gov/idp/startSSO.ping?PartnerSpId=IRS-eGain-IDP&TargetResource=https%3A%2F%2Fconnect.irs.gov%2Fsystem%2Ftemplates%2Fmessagecenter%2Firssecure%2Fen-US%2FIRS%3Fpoa%3Dyes%26lp%3Dhttps%3A%2F%2Fsa.www4.irs.gov%2Fsso%2Fprotected%2Flogout",
     "https://connect.irs.gov/system/templates/messagecenter/irscorp/en-US/LBIEXAM",
     "https://connect.irs.gov/system/templates/messagecenter/irsaca/en-US/LBI",
