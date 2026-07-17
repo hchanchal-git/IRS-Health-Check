@@ -669,7 +669,7 @@ def main(argv=None):
     )
 
     email_html = build_email_html(
-        subject, body, TO_EMAILS, CC_EMAILS, BCC_EMAILS, sent_at=now
+        subject, body, TO_EMAILS, CC_EMAILS, sent_at=now
     )
     draft_path = save_temp_html(email_html)
     draft_uri = path_to_file_uri(draft_path)
