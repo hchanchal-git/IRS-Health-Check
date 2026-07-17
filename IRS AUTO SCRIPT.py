@@ -55,7 +55,7 @@ except Exception:
 CASE_ID = "3805724"
 
 TO_EMAILS = [
-    "Vaishali.P.Narkhede@irs.gov","roshan.m.patel@irs.gov", "Donald.W.Russell@irs.gov","Christopher.S.Fuller@irs.gov",
+    "Vaishali.P.Narkhede@irs.gov", "roshan.m.patel@irs.gov", "Donald.W.Russell@irs.gov", "Christopher.S.Fuller@irs.gov",
     "jb551t@att.com", "Michael.A.Harrison@irs.gov", "George.B.Lenoir@irs.gov",
     "Erik.C.Schlenker@irs.gov", "Darren.E.Jackson@irs.gov",
     "Jeronima.G.Gomez@irs.gov", "Wayne.M.Garrido@irs.gov",
@@ -66,10 +66,11 @@ TO_EMAILS = [
 ]
 
 CC_EMAILS = [
-    "pgawande@eGain.com", "PBoyle@egain.com","dnewell@egain.com", "AGupta@eGain.com",
+    "pgawande@eGain.com", "PBoyle@egain.com", "dnewell@egain.com", "AGupta@eGain.com",
     "achan@eGain.com", "BUfoegbune@egain.com", "support@eGain.com",
     "radhav@eGain.com", "JKinderman@egain.com",
-    "eGainCloudNotifications@egain.com","cbu-tsops@egain.com"]
+    "eGainCloudNotifications@egain.com", "cbu-tsops@egain.com",
+]
 
 # Put your full list of IRS URLs here — every entry opens as a tab with the draft
 URLS = [
@@ -130,10 +131,8 @@ def _recipient_chips(emails: List[str], max_show: int = 4) -> str:
     shown = emails[:max_show]
     chips = "; ".join(_display_name(e) for e in shown)
     remaining = len(emails) - len(shown)
-
     if remaining > 0:
         chips += f'; <span class=\"more\">+{remaining} others</span>"
-
     return chips
 
 
@@ -142,7 +141,6 @@ def build_email_html(
     body: str,
     to: List[str],
     cc: List[str],
-    bcc: List[str],
     sent_at=None,
 ) -> str:
     """Outlook-style email reading draft (matches the health-check email layout)."""
@@ -151,7 +149,6 @@ def build_email_html(
     attach_name = f"IRS Daily Health Check Report - {get_date_with_ordinal(sent_at)}.xlsx"
     to_line = _recipient_chips(to, 4)
     cc_line = _recipient_chips(cc, 3)
-    bcc_line = _recipient_chips(bcc, 3) if bcc else ""
 
     html = f"""<!DOCTYPE html>
 <html>
@@ -332,7 +329,6 @@ def build_email_html(
       </div>
       <div class="field"><b>To:</b> {to_line}</div>
       <div class="field"><b>Cc:</b> {cc_line}</div>
-      {f'<div class="field"><b>Bcc:</b> {bcc_line}</div>' if bcc_line else ''}
 
       <div class="attachment" title="Attach the Excel report before sending">
         <div class="xlsx-icon">XLS</div>
@@ -359,10 +355,6 @@ def build_email_html(
       <ul>
         {''.join(f'<li>{x}</li>' for x in cc)}
       </ul>
-      <h3>Bcc (full list)</h3>
-      <ul>
-        {''.join(f'<li>{x}</li>' for x in bcc)}
-      </ul>
     </div>
   </div>
 </body>
@@ -371,10 +363,6 @@ def build_email_html(
 
 
 def save_temp_html(content: str, filename: str = "IRS_EmailDraft.html") -> str:
-    """
-    Save draft next to this script (easy to find), and also under TEMP.
-    Returns the primary path (script folder) used for opening in the browser.
-    """
     script_dir = Path(__file__).resolve().parent
     primary = script_dir / filename
     with open(primary, "w", encoding="utf-8") as f:
@@ -391,12 +379,10 @@ def save_temp_html(content: str, filename: str = "IRS_EmailDraft.html") -> str:
 
 
 def path_to_file_uri(path: str) -> str:
-    """Cross-platform file:// URI (Windows + macOS)."""
     return Path(path).resolve().as_uri()
 
 
 def find_windows_browser():
-    """Prefer Edge/Chrome so local HTML is not handed to Internet Explorer."""
     candidates = [
         os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
         os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
@@ -414,11 +400,6 @@ def find_windows_browser():
 
 
 def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
-    """
-    Open ONE new browser window where:
-      - Tab 1 = email draft
-      - Tab 2+ = every URL in URLS
-    """
     draft_path = str(Path(draft_path).resolve())
     if not os.path.isfile(draft_path):
         print("ERROR: Draft file was not created:", draft_path)
@@ -501,7 +482,6 @@ def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
 
 
 def open_urls_in_default_browser(urls: List[str]) -> None:
-    """Backward-compatible helper: first item is draft URI/path, rest are links."""
     if not urls:
         return
     first, rest = urls[0], urls[1:]
