@@ -69,8 +69,7 @@ CC_EMAILS = [
     "pgawande@eGain.com", "PBoyle@egain.com","dnewell@egain.com", "AGupta@eGain.com",
     "achan@eGain.com", "BUfoegbune@egain.com", "support@eGain.com",
     "radhav@eGain.com", "JKinderman@egain.com",
-    "eGainCloudNotifications@egain.com","cbu-tsops@egain.com",
-]
+    "eGainCloudNotifications@egain.com","cbu-tsops@egain.com"]
 
 # Put your full list of IRS URLs here — every entry opens as a tab with the draft
 URLS = [
