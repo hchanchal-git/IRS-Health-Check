@@ -52,21 +52,41 @@ except Exception:
 CASE_ID = "3805724"
 
 TO_EMAILS = [
-    "Vaishali.P.Narkhede@irs.gov", "roshan.m.patel@irs.gov", "Donald.W.Russell@irs.gov", "Christopher.S.Fuller@irs.gov",
-    "jb551t@att.com", "Michael.A.Harrison@irs.gov", "George.B.Lenoir@irs.gov",
-    "Erik.C.Schlenker@irs.gov", "Darren.E.Jackson@irs.gov",
-    "Jeronima.G.Gomez@irs.gov", "Wayne.M.Garrido@irs.gov",
-    "Melissa.Shuman@irs.gov", "Kartez.I.Harris@irs.gov",
-    "Anthony.G.Clark@irs.gov", "Amit.R.Mohite@irs.gov", "sankar.b.mandalika@irs.gov",
-    "Wenjun.du@irs.gov", "Lashelle.lewis@irs.gov", "Jasmine.A.Lee@irs.gov",
-    "Jennifer.L.Nunley@irs.gov", "Robin.S.Ferguson2@irs.gov",
+    "Vaishali.P.Narkhede@irs.gov",
+    "roshan.m.patel@irs.gov",
+    "Donald.W.Russell@irs.gov",
+    "Christopher.S.Fuller@irs.gov",
+    "jb551t@att.com",
+    "Michael.A.Harrison@irs.gov",
+    "George.B.Lenoir@irs.gov",
+    "Erik.C.Schlenker@irs.gov",
+    "Darren.E.Jackson@irs.gov",
+    "Jeronima.G.Gomez@irs.gov",
+    "Wayne.M.Garrido@irs.gov",
+    "Melissa.Shuman@irs.gov",
+    "Kartez.I.Harris@irs.gov",
+    "Anthony.G.Clark@irs.gov",
+    "Amit.R.Mohite@irs.gov",
+    "sankar.b.mandalika@irs.gov",
+    "Wenjun.du@irs.gov",
+    "Lashelle.lewis@irs.gov",
+    "Jasmine.A.Lee@irs.gov",
+    "Jennifer.L.Nunley@irs.gov",
+    "Robin.S.Ferguson2@irs.gov",
 ]
 
 CC_EMAILS = [
-    "pgawande@eGain.com", "PBoyle@egain.com", "dnewell@egain.com", "AGupta@eGain.com",
-    "achan@eGain.com", "BUfoegbune@egain.com", "support@eGain.com",
-    "radhav@eGain.com", "JKinderman@egain.com",
-    "eGainCloudNotifications@egain.com", "cbu-tsops@egain.com",
+    "pgawande@eGain.com",
+    "PBoyle@egain.com",
+    "dnewell@egain.com",
+    "AGupta@eGain.com",
+    "achan@eGain.com",
+    "BUfoegbune@egain.com",
+    "support@eGain.com",
+    "radhav@eGain.com",
+    "JKinderman@egain.com",
+    "eGainCloudNotifications@egain.com",
+    "cbu-tsops@egain.com",
 ]
 
 URLS = [
@@ -109,7 +129,7 @@ def get_date_with_ordinal(dt: datetime.datetime) -> str:
         suffix = "th"
     else:
         suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
-    return dt.strftime(f"%B {day}{suffix}, %Y")
+    return dt.strftime("%B " + str(day) + suffix + ", %Y")
 
 
 def _display_name(email: str) -> str:
@@ -134,49 +154,51 @@ def _recipient_chips(emails: List[str], max_show: int = 4) -> str:
 def build_email_html(subject: str, body: str, to: List[str], cc: List[str], sent_at=None) -> str:
     sent_at = sent_at or datetime.datetime.now()
     stamp = sent_at.strftime("%a %Y-%m-%d %H:%M")
-    attach_name = f"IRS Daily Health Check Report - {get_date_with_ordinal(sent_at)}.xlsx"
+    attach_name = "IRS Daily Health Check Report - " + get_date_with_ordinal(sent_at) + ".xlsx"
     to_line = _recipient_chips(to, 4)
     cc_line = _recipient_chips(cc, 3)
+    to_items = "".join("<li>" + x + "</li>" for x in to)
+    cc_items = "".join("<li>" + x + "</li>" for x in cc)
 
-    html = f"""<!DOCTYPE html>
+    html = """<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>{subject}</title>
+<title>""" + subject + """</title>
 <style>
-  * {{ box-sizing: border-box; }}
-  body {{ margin: 0; background: #f3f2f1; font-family: "Segoe UI", Calibri, Arial, sans-serif; color: #252423; }}
-  .outlook {{ max-width: 920px; margin: 24px auto; background: #fff; border: 1px solid #e1dfdd; box-shadow: 0 2px 8px rgba(0,0,0,.08); }}
-  .subject-bar {{ display: flex; align-items: center; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid #edebe9; }}
-  .irs-badge {{ flex: 0 0 auto; width: 36px; height: 36px; border-radius: 4px; background: #ffcd00; color: #000; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }}
-  .subject {{ font-size: 20px; font-weight: 600; line-height: 1.3; margin: 0; }}
-  .meta {{ padding: 14px 20px 10px; border-bottom: 1px solid #edebe9; }}
-  .from-row {{ display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }}
-  .from {{ display: flex; align-items: center; gap: 10px; }}
-  .avatar {{ width: 36px; height: 36px; border-radius: 50%; background: #6264a7; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }}
-  .from-name {{ font-weight: 600; font-size: 15px; }}
-  .timestamp {{ color: #605e5c; font-size: 13px; white-space: nowrap; }}
-  .field {{ margin: 4px 0 0 46px; font-size: 13px; color: #605e5c; line-height: 1.45; }}
-  .field b {{ color: #323130; font-weight: 600; margin-right: 6px; }}
-  .more {{ color: #0078d4; }}
-  .attachment {{ margin: 12px 20px 0 66px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #e1dfdd; border-radius: 4px; padding: 8px 12px; background: #faf9f8; max-width: 360px; }}
-  .xlsx-icon {{ width: 28px; height: 32px; background: #107c41; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; border-radius: 2px; }}
-  .attach-name {{ font-size: 13px; color: #323130; }}
-  .attach-size {{ font-size: 12px; color: #605e5c; }}
-  .body {{ padding: 28px 20px 36px 66px; font-size: 15px; line-height: 1.55; }}
-  .body p {{ margin: 0 0 14px; }}
-  .reminder {{ margin-top: 28px; padding: 12px 14px; background: #fff4ce; border-left: 4px solid #ffb900; font-size: 13px; color: #323130; }}
-  .full-lists {{ margin: 0 20px 24px; padding: 16px; background: #faf9f8; border: 1px solid #edebe9; border-radius: 4px; font-size: 13px; }}
-  .full-lists h3 {{ margin: 0 0 8px; font-size: 13px; color: #323130; }}
-  .full-lists ul {{ margin: 0 0 14px 18px; padding: 0; }}
-  .full-lists li {{ margin: 2px 0; color: #605e5c; }}
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f2f1; font-family: "Segoe UI", Calibri, Arial, sans-serif; color: #252423; }
+  .outlook { max-width: 920px; margin: 24px auto; background: #fff; border: 1px solid #e1dfdd; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .subject-bar { display: flex; align-items: center; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid #edebe9; }
+  .irs-badge { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 4px; background: #ffcd00; color: #000; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .subject { font-size: 20px; font-weight: 600; line-height: 1.3; margin: 0; }
+  .meta { padding: 14px 20px 10px; border-bottom: 1px solid #edebe9; }
+  .from-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+  .from { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #6264a7; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .from-name { font-weight: 600; font-size: 15px; }
+  .timestamp { color: #605e5c; font-size: 13px; white-space: nowrap; }
+  .field { margin: 4px 0 0 46px; font-size: 13px; color: #605e5c; line-height: 1.45; }
+  .field b { color: #323130; font-weight: 600; margin-right: 6px; }
+  .more { color: #0078d4; }
+  .attachment { margin: 12px 20px 0 66px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #e1dfdd; border-radius: 4px; padding: 8px 12px; background: #faf9f8; max-width: 360px; }
+  .xlsx-icon { width: 28px; height: 32px; background: #107c41; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; border-radius: 2px; }
+  .attach-name { font-size: 13px; color: #323130; }
+  .attach-size { font-size: 12px; color: #605e5c; }
+  .body { padding: 28px 20px 36px 66px; font-size: 15px; line-height: 1.55; }
+  .body p { margin: 0 0 14px; }
+  .reminder { margin-top: 28px; padding: 12px 14px; background: #fff4ce; border-left: 4px solid #ffb900; font-size: 13px; color: #323130; }
+  .full-lists { margin: 0 20px 24px; padding: 16px; background: #faf9f8; border: 1px solid #edebe9; border-radius: 4px; font-size: 13px; }
+  .full-lists h3 { margin: 0 0 8px; font-size: 13px; color: #323130; }
+  .full-lists ul { margin: 0 0 14px 18px; padding: 0; }
+  .full-lists li { margin: 2px 0; color: #605e5c; }
 </style>
 </head>
 <body>
   <div class="outlook">
     <div class="subject-bar">
       <div class="irs-badge">IRS</div>
-      <h1 class="subject">{subject}</h1>
+      <h1 class="subject">""" + subject + """</h1>
     </div>
     <div class="meta">
       <div class="from-row">
@@ -184,29 +206,29 @@ def build_email_html(subject: str, body: str, to: List[str], cc: List[str], sent
           <div class="avatar">EN</div>
           <div class="from-name">eGain Cloud Notifications</div>
         </div>
-        <div class="timestamp">{stamp}</div>
+        <div class="timestamp">""" + stamp + """</div>
       </div>
-      <div class="field"><b>To:</b> {to_line}</div>
-      <div class="field"><b>Cc:</b> {cc_line}</div>
+      <div class="field"><b>To:</b> """ + to_line + """</div>
+      <div class="field"><b>Cc:</b> """ + cc_line + """</div>
       <div class="attachment" title="Attach the Excel report before sending">
         <div class="xlsx-icon">XLS</div>
         <div>
-          <div class="attach-name">{attach_name}</div>
+          <div class="attach-name">""" + attach_name + """</div>
           <div class="attach-size">Attach before send · ~20 KB</div>
         </div>
       </div>
     </div>
     <div class="body">
-      {body}
+      """ + body + """
       <div class="reminder">
         <b>Reminder:</b> Please attach the Daily Health Check Excel report before sending this email.
       </div>
     </div>
     <div class="full-lists">
       <h3>To (full list)</h3>
-      <ul>{''.join(f'<li>{x}</li>' for x in to)}</ul>
+      <ul>""" + to_items + """</ul>
       <h3>Cc (full list)</h3>
-      <ul>{''.join(f'<li>{x}</li>' for x in cc)}</ul>
+      <ul>""" + cc_items + """</ul>
     </div>
   </div>
 </body>
@@ -271,7 +293,7 @@ def open_draft_and_urls(draft_path: str, urls: List[str]) -> None:
                     batch = urls[i : i + batch_size]
                     subprocess.Popen([browser] + batch, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     time.sleep(0.45)
-                print(f"Opened draft (tab 1) + {len(urls)} link tab(s) in one window.")
+                print("Opened draft (tab 1) + " + str(len(urls)) + " link tab(s) in one window.")
                 return
 
             subprocess.Popen(["cmd", "/c", "start", "", draft_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -319,7 +341,7 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
     }
 
     def ok(msg: str = "OK") -> str:
-        return f"{ts} - {msg}"
+        return ts + " - " + msg
 
     if HAVE_REQUESTS:
         sess = requests.Session()
@@ -328,43 +350,43 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
             r = sess.get(url, timeout=timeout, allow_redirects=True)
             code = r.status_code
             if 200 <= code < 300:
-                return ok(f"OK ({code})")
+                return ok("OK (" + str(code) + ")")
             if 300 <= code < 400:
-                return ok(f"Redirect ({code})")
+                return ok("Redirect (" + str(code) + ")")
             time.sleep(retry_delay)
             r2 = sess.get(url, timeout=timeout, allow_redirects=True)
             if 200 <= r2.status_code < 300:
-                return ok(f"OK (Retry {r2.status_code})")
-            return f"{ts} - NOT OK ({r2.status_code})"
+                return ok("OK (Retry " + str(r2.status_code) + ")")
+            return ts + " - NOT OK (" + str(r2.status_code) + ")"
         except SSLError as e:
             try:
                 r = sess.get(url, timeout=timeout, allow_redirects=True, verify=False)
                 if 200 <= r.status_code < 300:
                     return ok("OK (Insecure TLS - verify=False) - CERT/SSL verification issue detected")
-                return f"{ts} - NOT OK (SSL -> {r.status_code})"
+                return ts + " - NOT OK (SSL -> " + str(r.status_code) + ")"
             except Exception:
-                return f"{ts} - NOT OK (SSL Error: {e})"
+                return ts + " - NOT OK (SSL Error: " + str(e) + ")"
         except (RequestsConnectionError, Timeout, RequestException, socket.error):
             try:
                 time.sleep(retry_delay)
                 r = sess.get(url, timeout=timeout, allow_redirects=True)
                 if 200 <= r.status_code < 300:
-                    return ok(f"OK (Retry {r.status_code})")
-                return f"{ts} - NOT OK ({r.status_code})"
+                    return ok("OK (Retry " + str(r.status_code) + ")")
+                return ts + " - NOT OK (" + str(r.status_code) + ")"
             except Exception as e2:
-                return f"{ts} - NOT OK ({e2})"
+                return ts + " - NOT OK (" + str(e2) + ")"
 
     try:
         req = urllib_request.Request(url, headers=headers)
         resp = urllib_request.urlopen(req, timeout=timeout)
         code = resp.getcode()
         if 200 <= code < 300:
-            return ok(f"OK ({code})")
+            return ok("OK (" + str(code) + ")")
         time.sleep(retry_delay)
         resp2 = urllib_request.urlopen(req, timeout=timeout)
         if 200 <= resp2.getcode() < 300:
-            return ok(f"OK (Retry {resp2.getcode()})")
-        return f"{ts} - NOT OK ({resp2.getcode()})"
+            return ok("OK (Retry " + str(resp2.getcode()) + ")")
+        return ts + " - NOT OK (" + str(resp2.getcode()) + ")"
     except Exception:
         try:
             time.sleep(retry_delay)
@@ -372,9 +394,9 @@ def test_url_status(url: str, timeout: float = 12.0, retry_delay: float = 2.0) -
             resp = urllib_request.urlopen(req, timeout=timeout)
             if 200 <= resp.getcode() < 300:
                 return ok("OK (Retry)")
-            return f"{ts} - NOT OK ({resp.getcode()})"
+            return ts + " - NOT OK (" + str(resp.getcode()) + ")"
         except Exception as e2:
-            return f"{ts} - NOT OK ({e2})"
+            return ts + " - NOT OK (" + str(e2) + ")"
 
 
 class UrlStatusGUI:
@@ -428,17 +450,17 @@ class UrlStatusGUI:
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="IRS Daily Health Check - cross-platform Python script")
-    parser.add_argument("--no-gui", action="store_true", help="Don't show GUI (prints results to console)")
+    parser.add_argument("--no-gui", action="store_true", help="Don't show GUI")
     parser.add_argument("--skip-browser", action="store_true", help="Don't open browser tabs")
     args = parser.parse_args(argv)
 
     now = datetime.datetime.now()
     date_str = get_date_with_ordinal(now)
-    subject = f"IRS Daily Health Check Report - {date_str} [#{CASE_ID}]"
+    subject = "IRS Daily Health Check Report - " + date_str + " [#" + CASE_ID + "]"
     body = (
-        f"<p>Dear Customer,</p>"
-        f"<p>Please find the attached Daily Health Check Report - {date_str}.</p>"
-        f"<p>Regards,<br>eGain Corp</p>"
+        "<p>Dear Customer,</p>"
+        "<p>Please find the attached Daily Health Check Report - " + date_str + ".</p>"
+        "<p>Regards,<br>eGain Corp</p>"
     )
 
     email_html = build_email_html(subject, body, TO_EMAILS, CC_EMAILS, sent_at=now)
@@ -447,7 +469,7 @@ def main(argv=None):
     print("Draft URI:", path_to_file_uri(draft_path))
 
     if not args.skip_browser:
-        print(f"Opening browser: draft first, then {len(URLS)} link(s) in the same window ({platform.system()})...")
+        print("Opening browser: draft first, then " + str(len(URLS)) + " link(s) in the same window (" + platform.system() + ")...")
         open_draft_and_urls(draft_path, list(URLS))
     else:
         print("Skipping browser opening as requested.")
@@ -470,7 +492,7 @@ def main(argv=None):
     else:
         print("\nURL Results:")
         for url, status in results:
-            print(f"{url} -> {status}")
+            print(url + " -> " + status)
 
 
 if __name__ == "__main__":
