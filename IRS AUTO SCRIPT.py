@@ -52,41 +52,9 @@ except Exception:
 CASE_ID = "3805724"
 
 TO_EMAILS = [
-    "Vaishali.P.Narkhede@irs.gov",
-    "roshan.m.patel@irs.gov",
-    "Donald.W.Russell@irs.gov",
-    "Christopher.S.Fuller@irs.gov",
-    "jb551t@att.com",
-    "Michael.A.Harrison@irs.gov",
-    "George.B.Lenoir@irs.gov",
-    "Erik.C.Schlenker@irs.gov",
-    "Darren.E.Jackson@irs.gov",
-    "Jeronima.G.Gomez@irs.gov",
-    "Wayne.M.Garrido@irs.gov",
-    "Melissa.Shuman@irs.gov",
-    "Kartez.I.Harris@irs.gov",
-    "Anthony.G.Clark@irs.gov",
-    "Amit.R.Mohite@irs.gov",
-    "sankar.b.mandalika@irs.gov",
-    "Wenjun.du@irs.gov",
-    "Lashelle.lewis@irs.gov",
-    "Jasmine.A.Lee@irs.gov",
-    "Jennifer.L.Nunley@irs.gov",
-    "Robin.S.Ferguson2@irs.gov",
 ]
 
 CC_EMAILS = [
-    "pgawande@eGain.com",
-    "PBoyle@egain.com",
-    "dnewell@egain.com",
-    "AGupta@eGain.com",
-    "achan@eGain.com",
-    "BUfoegbune@egain.com",
-    "support@eGain.com",
-    "radhav@eGain.com",
-    "JKinderman@egain.com",
-    "eGainCloudNotifications@egain.com",
-    "cbu-tsops@egain.com",
 ]
 
 URLS = [
